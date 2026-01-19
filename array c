@@ -1,1 +1,180 @@
+#include "array.h"
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
 
+#define MIN_SIZE 5
+#define MAX_SIZE 20
+#define M_PI 3.14159265358979323846
+
+double fa(double x) {
+    return x * x * M_PI * cos(M_PI * x);
+}
+
+double* full_elements(double* ptr_array, int n) {
+    for (int i = 0; i < n; i++) 
+        ptr_array[i] = fa(i + 1);
+    return ptr_array;
+}
+
+int put_elements(double* ptr_array, int n) {
+    for (int i = 0; i < n; i++) 
+        printf("[%d] = %.2f\n", i, ptr_array[i]);
+    return n;
+}
+
+double* calc_elements(double* ptr_array, int n) {
+    for (int i = 0; i < n; i++) 
+        ptr_array[i] = ceil(ptr_array[i]);
+    return ptr_array;
+}
+
+double sum_elements(double* ptr_array, int begin, int end, int n) {
+    double sum = 0;
+    for (int i = begin; i <= end; i++) 
+        sum += ptr_array[i];
+    return sum;
+}
+
+int find_element(double* ptr_array, int n, double element) {
+    for (int i = 0; i < n; i++)
+        if (fabs(ptr_array[i] - element) < 1e-9)
+            return i;
+    return -1;
+}
+
+double max_abs(double* ptr_array, int n, double A) {
+    double max = 0;
+    for (int i = 0; i < n; i++) {
+        if (fabs(ptr_array[i] - A) > 1e-9) {
+            double abs_val = fabs(ptr_array[i]);
+            if (abs_val > max) max = abs_val;
+        }
+    }
+    return max;
+}
+
+int delete_negatives(double* ptr_arr, int size) {
+    int j = 0;
+    for (int i = 0; i < size; i++) 
+        if (ptr_arr[i] >= 0) 
+            ptr_arr[j++] = ptr_arr[i];
+    return j;
+}
+
+double* insert(double* ptr_arr, int* size) {
+    int pos = 0;
+    for (int i = 0; i < *size; i++) 
+        if (ptr_arr[i] > 0) pos++;
+    
+    int new_size = *size + pos;
+    double* new_arr = realloc(ptr_arr, new_size * sizeof(double));
+    
+    for (int i = *size - 1, j = new_size - 1; i >= 0; i--) {
+        new_arr[j--] = new_arr[i];
+        if (new_arr[i] > 0) 
+            new_arr[j--] = -999.0;
+    }
+    *size = new_size;
+    return new_arr;
+}
+
+double max_min_diff(double* ptr_array, int begin, int end, int n) {
+    double max = ptr_array[begin], min = ptr_array[begin];
+    for (int i = begin + 1; i <= end; i++) {
+        if (ptr_array[i] > max) max = ptr_array[i];
+        if (ptr_array[i] < min) min = ptr_array[i];
+    }
+    return max - min;
+}
+
+double* create_arr_d(double* arr_a, double* arr_b, double* arr_c, int size_a, int size_b, int size_c, int* size_d) {
+    int neg = 0;
+    for (int i = 0; i < size_a; i++) 
+        if (arr_a[i] < 0) neg++;
+    
+    *size_d = neg + size_b + (size_c + 4) / 5;
+    double* arr_d = malloc(*size_d * sizeof(double));
+    
+    int idx = 0;
+    for (int i = size_a - 1; i >= 0 && idx < neg; i--) 
+        if (arr_a[i] < 0) 
+            arr_d[idx++] = arr_a[size_a - 1] - arr_a[0];
+    
+    for (int i = 0; i < size_b; i++) 
+        arr_d[idx++] = arr_b[i];
+    
+    for (int i = 0; i < size_c; i += 5) 
+        arr_d[idx++] = arr_c[i];
+    
+    return arr_d;
+}
+
+double* generate_array(int* size) {
+    *size = MIN_SIZE + rand() % (MAX_SIZE - MIN_SIZE + 1);
+    double* arr = malloc(*size * sizeof(double));
+    for (int i = 0; i < *size; i++) 
+        arr[i] = -50.0 + 100.0 * (rand() / (double)RAND_MAX);
+    return arr;
+}
+
+void sort_bubble(double* arr, int n) {
+    for (int i = 0; i < n-1; i++)
+        for (int j = 0; j < n-i-1; j++)
+            if (arr[j] > arr[j+1]) {
+                double temp = arr[j];
+                arr[j] = arr[j+1];
+                arr[j+1] = temp;
+            }
+}
+
+void sort_select(double* arr, int n) {
+    for (int i = 0; i < n-1; i++) {
+        int imax = i;
+        for (int j = i+1; j < n; j++)
+            if (arr[j] > arr[imax]) imax = j;
+        if (imax != i) {
+            double temp = arr[i];
+            arr[i] = arr[imax];
+            arr[imax] = temp;
+        }
+    }
+}
+
+void sort_insert(double* arr, int n) {
+    for (int i = 1; i < n; i++) {
+        double key = arr[i];
+        int j = i-1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j+1] = arr[j];
+            j--;
+        }
+        arr[j+1] = key;
+    }
+}
+
+void sort_cocktail(double* arr, int n) {
+    int left = 0, right = n-1;
+    int swapped = 1;
+    while (left < right && swapped) {
+        swapped = 0;
+        for (int i = left; i < right; i++) {
+            if (arr[i] > arr[i+1]) {
+                double temp = arr[i];
+                arr[i] = arr[i+1];
+                arr[i+1] = temp;
+                swapped = 1;
+            }
+        }
+        right--;
+        for (int i = right; i > left; i--) {
+            if (arr[i] < arr[i-1]) {
+                double temp = arr[i];
+                arr[i] = arr[i-1];
+                arr[i-1] = temp;
+                swapped = 1;
+            }
+        }
+        left++;
+    }
+}
