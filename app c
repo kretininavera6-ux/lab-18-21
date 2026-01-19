@@ -1,1 +1,196 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
+#define SIZE 5
+
+typedef struct Cornice {
+    int length;
+    int ceilingWidth;
+    int wallHeight;
+    char material[20];
+} cornice_t;
+
+// Прототипы
+void fill_array(cornice_t *c, int size);
+void print_array(cornice_t *c, int size);
+void print_one(cornice_t c);
+cornice_t* search_material(cornice_t *c, int size, char* material);
+int compare(const void *a, const void *b);
+int load_file(char* filename, cornice_t *c, int *size);
+int save_file(char* filename, cornice_t *c, int size);
+void edit_one(cornice_t *c, int index);
+
+int main() {
+    cornice_t cornices[SIZE];
+    int current_size = SIZE;
+    int loaded = 0;
+    int choice;
+    
+    srand(time(NULL));
+    
+    do {
+        printf("\n1. Загрузить\n2. Заполнить\n3. Показать\n4. Изменить\n5. Найти\n6. Сортировать\n7. Сохранить\n0. Выход\nВыбор: ");
+        scanf("%d", &choice);
+        
+        switch(choice) {
+            case 1: {
+                char name[100];
+                printf("Имя файла: ");
+                scanf("%s", name);
+                if (load_file(name, cornices, &current_size)) {
+                    loaded = 1;
+                    printf("Загружено %d\n", current_size);
+                } else printf("Ошибка\n");
+                break;
+            }
+            case 2: {
+                fill_array(cornices, SIZE);
+                loaded = 1;
+                printf("Заполнено\n");
+                break;
+            }
+            case 3: {
+                if (loaded) print_array(cornices, current_size);
+                else printf("Сначала загрузите\n");
+                break;
+            }
+            case 4: {
+                if (loaded) {
+                    int idx;
+                    printf("Индекс: ");
+                    scanf("%d", &idx);
+                    if (idx >= 0 && idx < current_size) edit_one(cornices, idx);
+                    else printf("Неверно\n");
+                } else printf("Сначала загрузите\n");
+                break;
+            }
+            case 5: {
+                if (loaded) {
+                    char mat[20];
+                    printf("Материал: ");
+                    scanf("%s", mat);
+                    cornice_t* found = search_material(cornices, current_size, mat);
+                    if (found) print_one(*found);
+                    else printf("Не найдено\n");
+                } else printf("Сначала загрузите\n");
+                break;
+            }
+            case 6: {
+                if (loaded) {
+                    qsort(cornices, current_size, sizeof(cornice_t), compare);
+                    printf("Отсортировано\n");
+                } else printf("Сначала загрузите\n");
+                break;
+            }
+            case 7: {
+                if (loaded) {
+                    char name[100];
+                    printf("Имя файла: ");
+                    scanf("%s", name);
+                    if (save_file(name, cornices, current_size)) printf("Сохранено\n");
+                    else printf("Ошибка\n");
+                } else printf("Сначала загрузите\n");
+                break;
+            }
+            case 0: printf("Выход\n"); break;
+            default: printf("Неверно\n");
+        }
+    } while (choice != 0);
+    
+    return 0;
+}
+
+// Заполнение случайными данными
+void fill_array(cornice_t *c, int size) {
+    char* mats[] = {"Дерево", "Алюминий", "Пластик", "Сталь", "Металл"};
+    for (int i = 0; i < size; i++) {
+        c[i].length = rand() % 10 + 1;
+        c[i].ceilingWidth = rand() % 5 + 1;
+        c[i].wallHeight = rand() % 7 + 2;
+        strcpy(c[i].material, mats[rand() % 5]);
+    }
+}
+
+// Вывод всех
+void print_array(cornice_t *c, int size) {
+    printf("\nИндекс Длина Ширина Высота Материал   Площадь\n");
+    for (int i = 0; i < size; i++) {
+        int area = c[i].length * c[i].ceilingWidth;
+        printf("%6d %5d %6d %6d %-10s %6d\n", 
+               i, c[i].length, c[i].ceilingWidth, 
+               c[i].wallHeight, c[i].material, area);
+    }
+}
+
+// Вывод одной
+void print_one(cornice_t c) {
+    int area = c.length * c.ceilingWidth;
+    printf("Длина: %d, Ширина: %d, Высота: %d, Материал: %s, Площадь: %d\n",
+           c.length, c.ceilingWidth, c.wallHeight, c.material, area);
+}
+
+// Поиск
+cornice_t* search_material(cornice_t *c, int size, char* material) {
+    for (int i = 0; i < size; i++) {
+        if (strcmp(c[i].material, material) == 0) return &c[i];
+    }
+    return NULL;
+}
+
+// Сравнение для сортировки
+int compare(const void *a, const void *b) {
+    const cornice_t *ca = (const cornice_t *)a;
+    const cornice_t *cb = (const cornice_t *)b;
+    int areaA = ca->length * ca->ceilingWidth;
+    int areaB = cb->length * cb->ceilingWidth;
+    if (areaA < areaB) return -1;
+    if (areaA > areaB) return 1;
+    return 0;
+}
+
+// Загрузка
+int load_file(char* filename, cornice_t *c, int *size) {
+    FILE *f = fopen(filename, "r");
+    if (!f) return 0;
+    
+    *size = 0;
+    while (*size < SIZE && 
+           fscanf(f, "%d %d %d %s", 
+                  &c[*size].length, &c[*size].ceilingWidth, 
+                  &c[*size].wallHeight, c[*size].material) == 4) {
+        (*size)++;
+    }
+    
+    fclose(f);
+    return 1;
+}
+
+// Сохранение
+int save_file(char* filename, cornice_t *c, int size) {
+    FILE *f = fopen(filename, "w");
+    if (!f) return 0;
+    
+    for (int i = 0; i < size; i++) {
+        fprintf(f, "%d %d %d %s\n", c[i].length, c[i].ceilingWidth, 
+                c[i].wallHeight, c[i].material);
+    }
+    
+    fclose(f);
+    return 1;
+}
+
+// Изменение
+void edit_one(cornice_t *c, int index) {
+    printf("Новые данные:\n");
+    printf("Длина: ");
+    scanf("%d", &c[index].length);
+    printf("Ширина: ");
+    scanf("%d", &c[index].ceilingWidth);
+    printf("Высота: ");
+    scanf("%d", &c[index].wallHeight);
+    printf("Материал: ");
+    scanf("%s", c[index].material);
+}
