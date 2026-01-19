@@ -1,1 +1,21 @@
+#ifndef ARRAY_H
+#define ARRAY_H
 
+double fa(double x);
+double* full_elements(double* ptr_array, int n);
+int put_elements(double* ptr_array, int n);
+double* calc_elements(double* ptr_array, int n);
+double sum_elements(double* ptr_array, int begin, int end, int n);
+int find_element(double* ptr_array, int n, double element);
+double max_abs(double* ptr_array, int n, double A);
+int delete_negatives(double* ptr_arr, int size);
+double* insert(double* ptr_arr, int* size);
+double max_min_diff(double* ptr_array, int begin, int end, int n);
+double* create_arr_d(double* arr_a, double* arr_b, double* arr_c, int size_a, int size_b, int size_c, int* size_d);
+double* generate_array(int* size);
+void sort_bubble(double* ptr_array, int n);
+void sort_select(double* ptr_array, int n);
+void sort_insert(double* ptr_array, int n);
+void sort_cocktail(double* arr, int size);
+
+#endif
